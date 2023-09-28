@@ -27,8 +27,7 @@ def read_files():
             data = f.read()
             outgoing = extract_outgoing_links(data, filename)
             links_dict[filename] = outgoing
-
-# 
+            
 def pagerank(data, max_iter=20, tol=.005):
     N = len(data)
     PR = {}
@@ -38,6 +37,7 @@ def pagerank(data, max_iter=20, tol=.005):
         PR[pagename] = 1/N
     
     for i in range(max_iter):
+        print(f"- Iteration {i}...")
         PR_last = PR.copy()
         
         for rank in list(PR.keys()):
@@ -99,7 +99,10 @@ def stats():
     print("Quintiles:", outg_quintiles)
     
 def main():
+    print("Reading files...")
     read_files()
+    print("Finished reading files.")
+    print("Running pagerank...")
     print("\nPAGERANK")
     print("------------------------------")
     run_PR()
