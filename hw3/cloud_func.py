@@ -1,3 +1,4 @@
+# George Trammell
 import functions_framework
 from google.cloud import storage
 from google.cloud import pubsub_v1
@@ -19,16 +20,15 @@ def serve_file(request):
         print(received_message.message.data)
         received_message.ack()
 
-    # Assuming the path format is /bucketname/username/filename
-    parts = request.path.strip('/').split('/')
-    if len(parts) < 3:
+    names = request.path.strip('/').split('/')
+    if len(names) < 3:
         return ('Not Found', 404)
 
-    bucket_name = parts[0]
-    username = parts[1]
-    file_name = parts[2]
+    bucket_name = names[0]
+    username = names[1]
+    file_name = names[2]
 
-    headers = ["X-country", "X-client-IP", "X-gender", "X-age", "X-income", "X-time"]
+    headers = ["X-country", "X-client-IP", "X-time"]
     for header in headers:
         logging.info(f"{header}: {request.headers.get(header, 'N/A')}")
 
