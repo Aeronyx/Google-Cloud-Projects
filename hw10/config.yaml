@@ -1,0 +1,125 @@
+# george trammell
+resources:
+  # webserver vm with preexisting service acct
+  - type: compute.v1.instance
+    name: hw10-vm-webserver
+    properties:
+      zone: us-east1-d
+      machineType: https://www.googleapis.com/compute/v1/projects/robust-builder-398218/zones/us-east1-d/machineTypes/e2-micro
+      disks:
+        - deviceName: boot
+          type: PERSISTENT
+          boot: true
+          autoDelete: true
+          initializeParams:
+            sourceImage: https://www.googleapis.com/compute/v1/projects/debian-cloud/global/images/family/debian-11
+      networkInterfaces:
+      - network: https://www.googleapis.com/compute/v1/projects/robust-builder-398218/global/networks/default
+        accessConfigs:
+        - name: External NAT
+          type: ONE_TO_ONE_NAT
+      serviceAccounts:
+      - email: ds561-vm-service-acct@robust-builder-398218.iam.gserviceaccount.com
+        scopes:
+          - https://www.googleapis.com/auth/cloud-platform
+      metadata:
+        items:
+          - key: startup-script
+            value: |-
+              #! /bin/bash
+              #! /bin/bash
+
+              sudo apt-get update
+              sudo apt-get install -y python3-pip python3-dev build-essential libssl-dev libffi-dev python3-setuptools
+
+              mkdir /home/flaskapp
+              cd /home/flaskapp
+
+              pip3 install flask google-cloud-storage google-cloud-logging google-cloud-pubsub pymysql sqlalchemy python-dotenv
+
+              echo "export GOOGLE_CLOUD_PROJECT=robust-builder-398218" >> ~/.bashrc
+              echo "export DB_CONNECTION_STRING=robust-builder-398218:us-east1:HW10INSTANCE" >> ~/.bashrc
+              echo "export DB_USER=root" >> ~/.bashrc
+              echo "export DB_PASSWORD=VGX]_SzED@v3&:[K" >> ~/.bashrc
+              echo "export DB_DATABASE=HW10DB" >> ~/.bashrc
+              source ~/.bashrc
+
+  # new service acct
+  - type: iam.v1.serviceAccount
+    name: hw10-service-account
+    properties:
+      accountId: hw10-service-account
+      displayName: hw10-service-account
+
+  # bucket
+  - type: storage.v1.bucket
+    name: hw10-html-bucket
+    properties:
+      name: hw10-html-bucket
+      location: us-east1
+      project: robust-builder-398218
+
+  # mysql instance
+  - type: sqladmin.v1beta4.instance
+    name: ds561-hw10-instance
+    properties:
+      name: ds561-hw10-instance
+      region: us-east1
+      databaseVersion: MYSQL_5_7
+      settings:
+        tier: db-n1-standard-1
+        backupConfiguration:
+          enabled: true
+        ipConfiguration:
+          ipv4Enabled: true
+        userLabels:
+          environment: production
+      instanceType: CLOUD_SQL_INSTANCE
+      project: robust-builder-398218
+      rootPassword: VGX]_SzED@v3&:[K
+
+  # new pubsub topic
+  - type: gcp-types/pubsub-v1:projects.topics
+    name: ds561-hw10-topic1
+    properties:
+      topic: ds561-hw10-topic
+
+  # listener VM with preexisting service acct
+  - type: compute.v1.instance
+    name: hw10-vm-pubsub
+    properties:
+      zone: us-east1-d
+      machineType: https://www.googleapis.com/compute/v1/projects/robust-builder-398218/zones/us-east1-d/machineTypes/e2-micro
+      disks:
+        - deviceName: boot
+          type: PERSISTENT
+          boot: true
+          autoDelete: true
+          initializeParams:
+            sourceImage: https://www.googleapis.com/compute/v1/projects/debian-cloud/global/images/family/debian-11
+      serviceAccounts:
+      - email: ds561-vm-service-acct@robust-builder-398218.iam.gserviceaccount.com
+        scopes:
+          - https://www.googleapis.com/auth/cloud-platform
+      networkInterfaces:
+      - network: https://www.googleapis.com/compute/v1/projects/robust-builder-398218/global/networks/default
+        accessConfigs:
+        - name: External NAT
+          type: ONE_TO_ONE_NAT
+      metadata:
+        items:
+          - key: startup-script
+            value: |-
+              #! /bin/bash
+              #! /bin/bash
+
+              sudo apt-get update
+              sudo apt-get install -y python3-pip python3-dev build-essential libssl-dev libffi-dev python3-setuptools
+
+              mkdir /home/listener
+              cd /home/listener
+
+              pip3 install google-cloud-pubsub
+
+              echo "export GOOGLE_CLOUD_PROJECT=robust-builder-398218" >> ~/.bashrc
+              source ~/.bashrc
